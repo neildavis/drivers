@@ -5,9 +5,7 @@ import (
 	"time"
 )
 
-// NEC protocol references
-// https://www.sbprojects.net/knowledge/ir/nec.php
-// https://techdocs.altium.com/display/FPGA/NEC+Infrared+Transmission+Protocol
+// NEC protocol timing tolerances reference:
 // https://simple-circuit.com/arduino-nec-remote-control-decoder/
 
 // Data encapsulates the data received by the ReceiverDevice.
@@ -200,25 +198,14 @@ const (
 )
 
 func (ir *ReceiverDevice) decode() irDecodeError {
-	// Decode cmd and inverse cmd and perform validation check
-	cmd := uint8((ir.data.Code & 0x00ff0000) >> 16)
-	invCmd := uint8((ir.data.Code & 0xff000000) >> 24)
-	if cmd != ^invCmd {
-		// Validation failure. cmd and inverse cmd do not match
+	// Decode
+	valid, addr, cmd := SplitRawNECData(ir.data.Code)
+	if !valid {
 		return irDecodeErrorInverseCheckFail
 	}
-	// cmd validation pass, decode address
+	// cmd validation pass, store arress & command
+	ir.data.Address = addr
 	ir.data.Command = uint16(cmd)
-	addrLow := uint8(ir.data.Code & 0xff)
-	addrHigh := uint8((ir.data.Code & 0xff00) >> 8)
-	if addrHigh == ^addrLow {
-		// addrHigh is inverse of addrLow. This is not a valid 16-bit address in extended NEC coding
-		// since it is indistinguishable from 8-bit address with inverse validation. Use the 8-bit address
-		ir.data.Address = uint16(addrLow)
-	} else {
-		// 16-bit extended NEC address
-		ir.data.Address = (uint16(addrHigh) << 8) | uint16(addrLow)
-	}
 	// Clear repeat flag
 	ir.data.Flags &^= DataFlagIsRepeat
 	return irDecodeErrorNone

@@ -32,27 +32,48 @@ var irCmdButtons = map[uint16]string{
 }
 
 var (
-	pinIRIn = machine.GP26
-	ir      irremote.ReceiverDevice
+	pinLED   = machine.LED
+	pinIRIn  = machine.GP16
+	pinIROut = machine.GP17
+	pwmIrOut = machine.PWM0
+	irRecv   irremote.ReceiverDevice
+	irSend   irremote.SenderDevice
+	ledOn    bool
 )
 
 func setupPins() {
-	ir = irremote.NewReceiver(pinIRIn)
-	ir.Configure()
+	pinLED.Configure(machine.PinConfig{Mode: machine.PinOutput})
+	irRecv = irremote.NewReceiver(pinIRIn)
+	irRecv.Configure()
+	irSendConfig := irremote.SenderConfig{
+		Pin: pinIROut,
+		PWM: pwmIrOut,
+		// Default 33% duty cycle for ModulationDutyCycle
+	}
+	irSend = irremote.NewSender(irSendConfig)
+	irSend.Configure()
 }
 
 func irCallback(data irremote.Data) {
+
 	msg := "Command: " + irCmdButtons[data.Command]
 	if data.Flags&irremote.DataFlagIsRepeat != 0 {
 		msg = msg + " (REPEAT)"
 	}
 	println(msg)
+	ledOn = !ledOn
+	pinLED.Set(ledOn)
 }
 
 func main() {
 	setupPins()
-	ir.SetCommandHandler(irCallback)
+	irRecv.SetCommandHandler(irCallback)
 	for {
-		time.Sleep(time.Millisecond * 10)
+		for cmd := range irCmdButtons {
+			irSend.SendNEC(0xf0, byte(cmd), true)
+			time.Sleep(time.Second / 2)
+			irSend.StopNECRepeats()
+			time.Sleep(time.Second)
+		}
 	}
 }
