@@ -3,6 +3,8 @@ package irremote // import "tinygo.org/x/drivers/irremote"
 import (
 	"machine"
 	"time"
+
+	"tinygo.org/x/drivers/irremote/irprotocol"
 )
 
 // NEC protocol timing tolerances reference:
@@ -199,7 +201,7 @@ const (
 
 func (ir *ReceiverDevice) decode() irDecodeError {
 	// Decode
-	valid, addr, cmd := SplitRawNECData(ir.data.Code)
+	valid, addr, cmd := irprotocol.SplitRawNECData(ir.data.Code)
 	if !valid {
 		return irDecodeErrorInverseCheckFail
 	}

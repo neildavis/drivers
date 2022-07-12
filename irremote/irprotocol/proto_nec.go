@@ -1,4 +1,4 @@
-package irremote
+package irprotocol // import "tinygo.org/x/drivers/irprotocol"
 
 import "time"
 
@@ -10,15 +10,15 @@ const (
 	// NEC Consumer IR is modulated at 38 kHz
 	NEC_modulation_frequency = 38_000
 
-	nec_unit          = time.Nanosecond * 562_500 // 562.5 us
-	nec_lead_mark     = nec_unit * 16             // 9 ms
-	nec_lead_space    = nec_unit * 8              // 4.5 ms
-	nec_repeat_space  = nec_unit * 4              // 2.25 ms
-	nec_bit_mark      = nec_unit                  // 562.5 us
-	nec_bit_0_space   = nec_unit                  // 562.5 us
-	nec_bit_1_space   = nec_unit * 3              // 1.687 ms
-	nec_trail_mark    = nec_unit                  // 562 us
-	nec_repeat_period = nec_unit * 192            // 108 ms
+	NEC_unit          = time.Nanosecond * 562_500 // 562.5 us
+	NEC_lead_mark     = NEC_unit * 16             // 9 ms
+	NEC_lead_space    = NEC_unit * 8              // 4.5 ms
+	NEC_repeat_space  = NEC_unit * 4              // 2.25 ms
+	NEC_bit_mark      = NEC_unit                  // 562.5 us
+	NEC_bit_0_space   = NEC_unit                  // 562.5 us
+	NEC_bit_1_space   = NEC_unit * 3              // 1.687 ms
+	NEC_trail_mark    = NEC_unit                  // 562 us
+	NEC_repeat_period = NEC_unit * 192            // 108 ms
 )
 
 // Helper func to break a raw NEC code into constituent parts performing validation
